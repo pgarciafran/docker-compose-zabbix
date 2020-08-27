@@ -17,7 +17,8 @@ services:
     container_name: zabbix-server
     hostname: zabbix-server
     restart: always
-
+    networks:
+      - traefik_proxy
     ports:
       - "80:80"
       - "10051:10051"
@@ -29,8 +30,25 @@ services:
       - ZS_DBHost=zabbix.db
       - ZS_DBUser=zabbix
       - ZS_DBPassword=zabbix
+
+    deploy:
+      
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.zabbix.rule=Host(`zabbix.secandsys.com`)"
+        - "traefik.http.routers.mw.entrypoints=web"
+        - "traefik.http.services.mw.loadbalancer.server.port=80"
+        - "traefik.http.routers.mw-secured.rule=Host(`zabbix.secandsys.com`)"
+        - "traefik.http.routers.mw-secured.entrypoints=web-secured"
+        - "traefik.http.routers.mw-secured.tls.certresolver=mytlschallenge"
+
 volumes:
   zabbix-db-storage:
     driver: local
   backups:
     driver: local
+
+networks:
+  traefik_proxy:
+    external: true
+
