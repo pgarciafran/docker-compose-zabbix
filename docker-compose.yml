@@ -12,6 +12,7 @@ services:
     environment:
       - MARIADB_USER=zabbix
       - MARIADB_PASS=zabbix
+
   zabbix-server:
     image: monitoringartist/zabbix-xxl
     container_name: zabbix-server
@@ -32,15 +33,14 @@ services:
       - ZS_DBPassword=zabbix
 
     deploy:
-      
-      labels:
+     labels:
         - "traefik.enable=true"
         - "traefik.http.routers.zabbix.rule=Host(`zabbix.secandsys.com`)"
-        - "traefik.http.routers.mw.entrypoints=web"
-        - "traefik.http.services.mw.loadbalancer.server.port=80"
-        - "traefik.http.routers.mw-secured.rule=Host(`zabbix.secandsys.com`)"
-        - "traefik.http.routers.mw-secured.entrypoints=web-secured"
-        - "traefik.http.routers.mw-secured.tls.certresolver=mytlschallenge"
+        - "traefik.http.routers.zabbix.entrypoints=web"
+        - "traefik.http.services.zabbix.loadbalancer.server.port=80"
+        - "traefik.http.routers.zabbix-secured.rule=Host(`zabbix.secandsys.com`)"
+        - "traefik.http.routers.zabbix-secured.entrypoints=web-secured"
+        - "traefik.http.routers.zabbix-secured.tls.certresolver=mytlschallenge"
 
 volumes:
   zabbix-db-storage:
