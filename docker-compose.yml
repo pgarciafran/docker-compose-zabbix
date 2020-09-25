@@ -1,54 +1,27 @@
 version: '3'
+
 services:
-  zabbix-db:
-    image: monitoringartist/zabbix-db-mariadb
-    container_name: zabbix-db
-    hostname: zabbix-db
-    restart: always
+
+  zabbixdb:
+    image: monitoringartist/zabbix-db-mariadb:latest
     volumes:
-      - zabbix-db-storage:/var/lib/mysql
-      - backups:/backups
       - /etc/localtime:/etc/localtime:ro
     environment:
       - MARIADB_USER=zabbix
       - MARIADB_PASS=zabbix
 
-  zabbix-server:
-    image: monitoringartist/zabbix-xxl
-    container_name: zabbix-server
-    hostname: zabbix-server
-    restart: always
-    networks:
-      - traefik_proxy
+  zabbixserver:
+    image: monitoringartist/dockbix-xxl:latest
+    depends_on:
+      - zabbixdb
     ports:
-      - "80:80"
+      - "8088:80"
       - "10051:10051"
     volumes:
       - /etc/localtime:/etc/localtime:ro
-    links:
-      - zabbix-db:zabbix.db
     environment:
-      - ZS_DBHost=zabbix.db
+      - ZS_DBHost=zabbixdb
       - ZS_DBUser=zabbix
       - ZS_DBPassword=zabbix
-
-    deploy:
-     labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.zabbix.rule=Host(`zabbix.secandsys.com`)"
-        - "traefik.http.routers.zabbix.entrypoints=web"
-        - "traefik.http.services.zabbix.loadbalancer.server.port=80"
-        - "traefik.http.routers.zabbix-secured.rule=Host(`zabbix.secandsys.com`)"
-        - "traefik.http.routers.zabbix-secured.entrypoints=web-secured"
-        - "traefik.http.routers.zabbix-secured.tls.certresolver=mytlschallenge"
-
-volumes:
-  zabbix-db-storage:
-    driver: local
-  backups:
-    driver: local
-
-networks:
-  traefik_proxy:
-    external: true
-
+      - XXL_zapix=true
+      - XXL_grapher=true
