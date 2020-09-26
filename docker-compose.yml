@@ -14,14 +14,30 @@ services:
     image: monitoringartist/dockbix-xxl:latest
     depends_on:
       - zabbixdb
+    networks:
+      - traefik_proxy
     ports:
       - "8088:80"
       - "10051:10051"
     volumes:
       - /etc/localtime:/etc/localtime:ro
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.zabbix.rule=Host(`zabbix.secandsys.com`)"
+        - "traefik.http.routers.zabbix.entrypoints=web"
+        - "traefik.http.services.zabbix.loadbalancer.server.port=8088"
+        - "traefik.http.routers.zabbix-secured.rule=Host(`zabbix.secandsys.com`)"
+        - "traefik.http.routers.zabbix-secured.entrypoints=web-secured"
+        - "traefik.http.routers.zabbix-secured.tls.certresolver=mytlschallenge"
     environment:
       - ZS_DBHost=zabbixdb
       - ZS_DBUser=zabbix
       - ZS_DBPassword=zabbix
       - XXL_zapix=true
       - XXL_grapher=true
+networks:
+  traefik_proxy:
+      external: true
